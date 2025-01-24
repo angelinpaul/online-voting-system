@@ -1,7 +1,6 @@
 <?php
 session_start();
-include('connection.php'); // Ensure this is the correct path for your database connection file
-
+include('connection.php');
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit();
@@ -15,23 +14,17 @@ $user_result = $user_stmt->get_result();
 $user = $user_result->fetch_assoc();
 $user_id = $user['id'];
 
-// Debugging: Check the contents of the POST data
-// var_dump($_POST); // Uncomment this line to see the submitted data
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Check if candidate_id is set and not empty
+   
     if (isset($_POST['candidate_id']) && !empty($_POST['candidate_id'])) {
         $candidate_id = $_POST['candidate_id'];
         $vote_time = date('Y-m-d H:i:s');
-
-        // Check if the user has already voted for this candidate
         $stmt = $conn->prepare("SELECT * FROM votes WHERE user_id = ? AND candidate_id = ?");
         $stmt->bind_param("ii", $user_id, $candidate_id);
         $stmt->execute();
         $existing_vote = $stmt->get_result()->fetch_assoc();
 
         if (!$existing_vote) {
-            // Insert a new vote
             $stmt = $conn->prepare("INSERT INTO votes (user_id, candidate_id, vote_time) VALUES (?, ?, ?)");
             $stmt->bind_param("iis", $user_id, $candidate_id, $vote_time);
             if ($stmt->execute()) {
